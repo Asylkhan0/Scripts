@@ -1,0 +1,86 @@
+var AllOK = false;
+var Ruiner = 0;
+
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Redactor Menu')
+      .addItem('Поменять инвойс код', 'promptForInvoiceCodes')
+      .addItem('Заменить месяц', 'promptForMonth')
+      .addToUi();
+}
+
+function promptForInvoiceCodes() {
+  const ui = SpreadsheetApp.getUi();
+  
+  const oldInvoiceCodeResponse = ui.prompt('Введите старый инвойс код:');
+  const oldInvoiceCode = oldInvoiceCodeResponse.getResponseText();
+  
+  const newInvoiceCodeResponse = ui.prompt('Введите новый инвойс код:');
+  const newInvoiceCode = newInvoiceCodeResponse.getResponseText();
+
+  if (oldInvoiceCode && newInvoiceCode) {
+    changeInvoiceCode(oldInvoiceCode, newInvoiceCode);
+  } else {
+    ui.alert("Оба инвойс кода должны быть введены.");
+  }
+}
+
+function promptForMonth() {
+  const ui = SpreadsheetApp.getUi();
+  
+  const oldMonthResponse = ui.prompt('Введите старый месяц:');
+  const oldMonth = oldMonthResponse.getResponseText();
+  
+  const newMonthResponse = ui.prompt('Введите новый месяц:');
+  const newMonth = newMonthResponse.getResponseText();
+
+  if (oldMonth && newMonth) {
+    changeMonth(oldMonth, newMonth);
+  } else {
+    ui.alert("Оба месяца должны быть введены.");
+  }
+}
+
+function changeInvoiceCode(oldInvoiceCode, newInvoiceCode) {
+  const ui = SpreadsheetApp.getUi();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = spreadsheet.getSheets();
+  //ui.alert(`${sheets.length}` )
+  
+  for (let i = 0; i < sheets.length; i++) {
+    const sheet = sheets[i];
+    
+    const cellRange = sheet.getRange('B7');
+    const cellValue = cellRange.getValue();
+
+    const InvoiceCode1 = cellValue.match(/No\.\s*(\d{1,2})/);
+    InvoiceCode = InvoiceCode1 ? parseInt(InvoiceCode1[1]) : null;
+
+    if (InvoiceCode == oldInvoiceCode){
+      const newInvoiceValue = cellValue.replace(oldInvoiceCode, newInvoiceCode); 
+      cellRange.setValue(newInvoiceValue); 
+    }
+    else{
+      //ui.alert(`В ${i+1} листе код начинается не с ${oldInvoiceCode}` );
+    }
+  }
+} 
+
+function changeMonth(oldMonth, newMonth) {
+  const ui = SpreadsheetApp.getUi();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = spreadsheet.getSheets();
+
+  for (let i = 0; i < sheets.length; i++) {
+    const sheet = sheets[i];
+    const currentName = sheet.getName();
+    
+    const textFinder = sheet.createTextFinder(oldMonth);
+    textFinder.replaceAllWith(newMonth)
+
+    const newName = currentName.replace(oldMonth, newMonth);
+    sheet.setName(newName);
+  } 
+}
+ 
+
